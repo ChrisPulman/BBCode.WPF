@@ -8,9 +8,6 @@ jobs:
   build-and-release:
 
     runs-on: windows-2022
-    permissions:
-        pull-requests: write
-        contents: read
     outputs:
       nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
@@ -72,14 +69,6 @@ jobs:
     - name: Changelog
       uses: glennawatson/ChangeLog@v1
       id: changelog
-      
-    - name: Create a Release
-      uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: false
-          files: ${{ steps.changelog.outputs.commitLog }}
 
     - name: NuGet Push
       env:
