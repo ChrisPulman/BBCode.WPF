@@ -77,7 +77,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: ${{ steps.changelog.outputs.commitLog }}
-      id: ${{ steps.nbgv.outputs.SemVer2 }}
 
     - name: NuGet Push
       env:
