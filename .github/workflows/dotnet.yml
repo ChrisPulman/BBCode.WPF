@@ -9,6 +9,8 @@ jobs:
 
     runs-on: windows-2022
  
+    outputs:
+      nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
     - name: Get Current Visual Studio Information
       shell: bash
