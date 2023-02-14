@@ -1,0 +1,17 @@
+﻿<Window
+    x:Class="BBCode.WPF.TestApp.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bbcode="https://github.com/ChrisPulman/BBCode.WPF"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    mc:Ignorable="d">
+    <StackPanel>
+        <bbcode:BBCodeBlock BBCode="Hello, This is an example of using a BBCode Block[br]We can have [color=Red]colored text[/color]" />
+        <bbcode:BBCodeBlock BBCode="We can have [b]bold[/b] text[br]Images[br][img=https://www.bbcode.org/images/lubeck_small.jpg,width=200]lubeck[/img][br]Links [url=https://www.britannica.com/place/Lubeck]About Lubeck[/url][br]We can have [u]underlined[/u] text" />
+        <bbcode:BBCodeBlock BBCode="We can have [size=24]bigger text[/size][br]We can have [size=7]smaller text[/size][br]We can have [i]italic[/i] text[br]We can have different [font=Vivaldi]fonts[/font][br]We can [s]strike through[/s] text" />
+    </StackPanel>
+</Window>

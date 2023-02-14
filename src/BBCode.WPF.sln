@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BBCode.WPF", "BBCode.WPF\BBCode.WPF.csproj", "{5B74C99F-6752-4232-AF6A-4E264A436D3B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionConfig", "{312E342E-55AE-4268-92E8-E665F1838B30}"
+	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+		..\.gitignore = ..\.gitignore
+		..\.github\workflows\BuildOnly.yml = ..\.github\workflows\BuildOnly.yml
+		..\Directory.Build.props = ..\Directory.Build.props
+		..\.github\workflows\dotnet.yml = ..\.github\workflows\dotnet.yml
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+		..\stylecop.json = ..\stylecop.json
+		..\Version.json = ..\Version.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BBCode.WPF.TestApp", "BBCode.WPF.TestApp\BBCode.WPF.TestApp.csproj", "{09294D6A-F10C-479A-A632-EC26DD060A3D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		PreRelease|Any CPU = PreRelease|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B74C99F-6752-4232-AF6A-4E264A436D3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B74C99F-6752-4232-AF6A-4E264A436D3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B74C99F-6752-4232-AF6A-4E264A436D3B}.PreRelease|Any CPU.ActiveCfg = PreRelease|Any CPU
+		{5B74C99F-6752-4232-AF6A-4E264A436D3B}.PreRelease|Any CPU.Build.0 = PreRelease|Any CPU
+		{5B74C99F-6752-4232-AF6A-4E264A436D3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B74C99F-6752-4232-AF6A-4E264A436D3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09294D6A-F10C-479A-A632-EC26DD060A3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09294D6A-F10C-479A-A632-EC26DD060A3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09294D6A-F10C-479A-A632-EC26DD060A3D}.PreRelease|Any CPU.ActiveCfg = PreRelease|Any CPU
+		{09294D6A-F10C-479A-A632-EC26DD060A3D}.PreRelease|Any CPU.Build.0 = PreRelease|Any CPU
+		{09294D6A-F10C-479A-A632-EC26DD060A3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09294D6A-F10C-479A-A632-EC26DD060A3D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0BA01BAF-5662-4B8C-815F-BB33398286C4}
+	EndGlobalSection
+EndGlobal
