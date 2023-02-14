@@ -8,7 +8,9 @@ jobs:
   build-and-release:
 
     runs-on: windows-2022
- 
+    permissions:
+        pull-requests: write
+        contents: read
     outputs:
       nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
