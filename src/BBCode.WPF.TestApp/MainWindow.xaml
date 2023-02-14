@@ -12,6 +12,6 @@
     <StackPanel>
         <bbcode:BBCodeBlock BBCode="Hello, This is an example of using a BBCode Block[br]We can have [color=Red]colored text[/color]" />
         <bbcode:BBCodeBlock BBCode="We can have [b]bold[/b] text[br]Images[br][img=https://www.bbcode.org/images/lubeck_small.jpg,width=200]lubeck[/img][br]Links [url=https://www.britannica.com/place/Lubeck]About Lubeck[/url][br]We can have [u]underlined[/u] text" />
-        <bbcode:BBCodeBlock BBCode="We can have [size=24]bigger text[/size][br]We can have [size=7]smaller text[/size][br]We can have [i]italic[/i] text[br]We can have different [font=Vivaldi]fonts[font]" />
+        <bbcode:BBCodeBlock BBCode="We can have [size=24]bigger text[/size][br]We can have [size=7]smaller text[/size][br]We can have [i]italic[/i] text[br]We can have different [font=Vivaldi]fonts[/font][br]We can [s]strike through[/s] text" />
     </StackPanel>
 </Window>
