@@ -14,7 +14,7 @@
     <Nullable>enable</Nullable>
     <PackageIcon>logo.png</PackageIcon>
     <Configurations>Debug;Release;PreRelease</Configurations>
-    <PackageReleaseNotes>Compatability with Net 6 / 7 and net462</PackageReleaseNotes>
+    <PackageReleaseNotes>Compatability with Net 6/7/8 and net462</PackageReleaseNotes>
     <PackageTags>BBCode;WPF;UserControl;net;netstandard</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
