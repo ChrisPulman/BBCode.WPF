@@ -26,6 +26,11 @@ namespace CP.BBCode.WPF.Core
         private const string TagStrikeThrough = "s";
         private const string TagUnderline = "u";
         private const string TagUrl = "url";
+        private const string TagEmail = "email";
+        private const string TagQuote = "quote";
+        private const string TagCode = "code";
+        private const string TagList = "list";
+        private const string TagListItem = "*"; // [*]
         private readonly BBCodeBlock _source;
 
         /// <summary>
@@ -44,9 +49,7 @@ namespace CP.BBCode.WPF.Core
         public override Span Parse()
         {
             var span = new Span();
-
             Parse(span);
-
             return span;
         }
 
@@ -66,11 +69,27 @@ namespace CP.BBCode.WPF.Core
 
                 if (token.TokenType == BbCodeTokeniser.TokenStartTag)
                 {
-                    ParseTag(token.Value, true, context);
+                    // Handle list item before generic tag parsing.
+                    if (token.Value == TagListItem && context.ListMode)
+                    {
+                        // New bullet: line break if not first.
+                        if (context.ListItemCount > 0)
+                        {
+                            span.Inlines.Add(new LineBreak());
+                        }
+
+                        context.ListItemCount++;
+
+                        // Bullet symbol.
+                        span.Inlines.Add(context.CreateRun("• "));
+                        continue;
+                    }
+
+                    ParseTag(token.Value, true, context, span);
                 }
                 else if (token.TokenType == BbCodeTokeniser.TokenEndTag)
                 {
-                    ParseTag(token.Value, false, context);
+                    ParseTag(token.Value, false, context, span);
                 }
                 else if (token.TokenType == BbCodeTokeniser.TokenText)
                 {
@@ -79,7 +98,38 @@ namespace CP.BBCode.WPF.Core
                 }
                 else if (token.TokenType == BbCodeTokeniser.TokenLink)
                 {
-                    ParseTag(token.Value, true, context);
+                    var linkTagName = token.Value; // url or email
+                    ParseTag(token.Value, true, context, span);
+
+                    // If attribute present context.NavigateUri is already set.
+                    // If not, attempt to use next text token as both address and display text when followed by closing tag.
+                    if (context.NavigateUri == null)
+                    {
+                        var possibleText = LA(1);
+                        var possibleEnd = LA(2);
+                        if (possibleText.TokenType == BbCodeTokeniser.TokenText &&
+                            possibleEnd.TokenType == BbCodeTokeniser.TokenEndTag && possibleEnd.Value == linkTagName)
+                        {
+                            Consume(); // consume text
+                            var raw = possibleText.Value;
+                            string target;
+                            if (linkTagName == TagEmail)
+                            {
+                                target = "mailto:" + raw;
+                            }
+                            else
+                            {
+                                target = raw;
+                            }
+
+                            var hyperlink = new Hyperlink(context.CreateRun(raw)) { NavigateUri = new Uri(target, UriKind.RelativeOrAbsolute) };
+                            span.Inlines.Add(hyperlink);
+
+                            // Leave end tag to normal processing which will reset NavigateUri anyway.
+                            continue;
+                        }
+                    }
+
                     if (context.NavigateUri != null)
                     {
                         var tokenText = LA(1);
@@ -91,7 +141,7 @@ namespace CP.BBCode.WPF.Core
                             {
                                 var linkWithText = new Hyperlink(context.CreateRun(tokenText.Value))
                                 {
-                                    NavigateUri = new Uri(context.NavigateUri!),
+                                    NavigateUri = new Uri(context.NavigateUri!, UriKind.RelativeOrAbsolute),
                                 };
                                 span.Inlines.Add(linkWithText);
                                 handled = true;
@@ -102,7 +152,7 @@ namespace CP.BBCode.WPF.Core
                         {
                             var linkWithText = new Hyperlink(context.CreateRun(context.NavigateUri!))
                             {
-                                NavigateUri = new Uri(context.NavigateUri!)
+                                NavigateUri = new Uri(context.NavigateUri!, UriKind.RelativeOrAbsolute)
                             };
                             span.Inlines.Add(linkWithText);
                         }
@@ -115,7 +165,7 @@ namespace CP.BBCode.WPF.Core
                 }
                 else if (token.TokenType == BbCodeTokeniser.TokenImage)
                 {
-                    ParseTag(token.Value, true, context);
+                    ParseTag(token.Value, true, context, span);
                     if (context.Image != null)
                     {
                         var sp = new StackPanel();
@@ -164,17 +214,13 @@ namespace CP.BBCode.WPF.Core
         /// <param name="tag">The tag.</param>
         /// <param name="start">if set to <c>true</c> [start].</param>
         /// <param name="context">The context.</param>
-        private void ParseTag(string tag, bool start, ParseContext context)
+        /// <param name="root">Root span for inline insertions (used for non-style tags like list).</param>
+        private void ParseTag(string tag, bool start, ParseContext context, Span root)
         {
             switch (tag)
             {
                 case TagBold:
-                    context.FontWeight = null;
-                    if (start)
-                    {
-                        context.FontWeight = FontWeights.Bold;
-                    }
-
+                    context.FontWeight = start ? FontWeights.Bold : null;
                     break;
 
                 case TagColor:
@@ -195,7 +241,7 @@ namespace CP.BBCode.WPF.Core
                     }
                     else
                     {
-                        context.Foreground = Brushes.Transparent;
+                        context.Foreground = null; // reset
                     }
 
                     break;
@@ -212,18 +258,17 @@ namespace CP.BBCode.WPF.Core
                     }
                     else
                     {
-                        context.FontFamily = null!;
+                        context.FontFamily = null;
                     }
 
                     break;
 
                 case TagItalic:
                     context.FontStyle = start ? FontStyles.Italic : null;
-
                     break;
 
                 case TagStrikeThrough:
-                    context.TextDecorations = start ? TextDecorations.Strikethrough : null!;
+                    context.TextDecorations = start ? TextDecorations.Strikethrough : null;
                     break;
 
                 case TagSize:
@@ -232,7 +277,11 @@ namespace CP.BBCode.WPF.Core
                         var token = LA(1);
                         if (token.TokenType == BbCodeTokeniser.TokenAttribute)
                         {
-                            context.FontSize = Convert.ToDouble(token.Value);
+                            if (double.TryParse(token.Value, out var size))
+                            {
+                                context.FontSize = size;
+                            }
+
                             Consume();
                         }
                     }
@@ -244,22 +293,33 @@ namespace CP.BBCode.WPF.Core
                     break;
 
                 case TagUnderline:
-                    context.TextDecorations = start ? TextDecorations.Underline : null!;
+                    context.TextDecorations = start ? TextDecorations.Underline : null;
                     break;
 
                 case TagUrl:
+                case TagEmail:
                     if (start)
                     {
                         var token = LA(1);
                         if (token.TokenType == BbCodeTokeniser.TokenAttribute)
                         {
-                            context.NavigateUri = token.Value;
+                            var addr = token.Value;
+                            if (tag == TagEmail && !addr.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                addr = "mailto:" + addr;
+                            }
+
+                            context.NavigateUri = addr;
                             Consume();
+                        }
+                        else
+                        {
+                            context.NavigateUri = null; // will attempt auto-detect
                         }
                     }
                     else
                     {
-                        context.NavigateUri = null!;
+                        context.NavigateUri = null;
                     }
 
                     break;
@@ -279,13 +339,19 @@ namespace CP.BBCode.WPF.Core
                             var height = attributes.Find(x => x.Contains("height="));
                             if (height != null)
                             {
-                                image.Height = double.Parse(height.Split('=')[1]);
+                                if (double.TryParse(height.Split('=')[1], out var h))
+                                {
+                                    image.Height = h;
+                                }
                             }
 
                             var width = attributes.Find(x => x.Contains("width="));
                             if (width != null)
                             {
-                                image.Width = double.Parse(width.Split('=')[1]);
+                                if (double.TryParse(width.Split('=')[1], out var w))
+                                {
+                                    image.Width = w;
+                                }
                             }
 
                             context.Image = image;
@@ -294,7 +360,62 @@ namespace CP.BBCode.WPF.Core
                     }
                     else
                     {
-                        context.Image = null!;
+                        context.Image = null;
+                    }
+
+                    break;
+
+                case TagQuote:
+                    if (start)
+                    {
+                        var token = LA(1);
+                        if (token.TokenType == BbCodeTokeniser.TokenAttribute)
+                        {
+                            // Prepend author line.
+                            Consume();
+                            root.Inlines.Add(new LineBreak());
+                            root.Inlines.Add(new Run(token.Value + " wrote:") { FontWeight = FontWeights.Bold });
+                            root.Inlines.Add(new LineBreak());
+                        }
+
+                        context.FontStyle = FontStyles.Italic;
+                        context.Foreground = new SolidColorBrush(Colors.Gray);
+                    }
+                    else
+                    {
+                        context.FontStyle = null;
+                        context.Foreground = null;
+                        root.Inlines.Add(new LineBreak());
+                    }
+
+                    break;
+
+                case TagCode:
+                    if (start)
+                    {
+                        context.FontFamily = new FontFamily("Consolas");
+                        context.Background = new SolidColorBrush(Color.FromRgb(240, 240, 240));
+                    }
+                    else
+                    {
+                        context.FontFamily = null;
+                        context.Background = null;
+                        root.Inlines.Add(new LineBreak());
+                    }
+
+                    break;
+
+                case TagList:
+                    if (start)
+                    {
+                        context.ListMode = true;
+                        context.ListItemCount = 0;
+                        root.Inlines.Add(new LineBreak());
+                    }
+                    else
+                    {
+                        context.ListMode = false;
+                        root.Inlines.Add(new LineBreak());
                     }
 
                     break;
@@ -312,62 +433,58 @@ namespace CP.BBCode.WPF.Core
             /// <param name="parent">The parent.</param>
             public ParseContext(Span parent) => Parent = parent;
 
-            /// <summary>
-            /// Sets the font family.
-            /// </summary>
-            /// <value>
-            /// The font family.
-            /// </value>
-            public FontFamily? FontFamily { private get; set; }
+            public bool ListMode { get; set; }
+
+            public int ListItemCount { get; set; }
 
             /// <summary>
-            /// Sets the size of the font.
+            /// Gets or sets the font family.
             /// </summary>
-            /// <value>The size of the font.</value>
-            public double? FontSize { private get; set; }
+            public FontFamily? FontFamily { get; set; }
 
             /// <summary>
-            /// Sets the font style.
+            /// Gets or sets the size of the font.
             /// </summary>
-            /// <value>The font style.</value>
-            public FontStyle? FontStyle { private get; set; }
+            public double? FontSize { get; set; }
 
             /// <summary>
-            /// Sets the font weight.
+            /// Gets or sets the font style.
             /// </summary>
-            /// <value>The font weight.</value>
-            public FontWeight? FontWeight { private get; set; }
+            public FontStyle? FontStyle { get; set; }
 
             /// <summary>
-            /// Sets the foreground.
+            /// Gets or sets the font weight.
             /// </summary>
-            /// <value>The foreground.</value>
-            public Brush? Foreground { private get; set; }
+            public FontWeight? FontWeight { get; set; }
+
+            /// <summary>
+            /// Gets or sets the foreground brush.
+            /// </summary>
+            public Brush? Foreground { get; set; }
 
             /// <summary>
             /// Gets or sets the navigate URI.
             /// </summary>
-            /// <value>The navigate URI.</value>
             public string? NavigateUri { get; set; }
 
             /// <summary>
-            /// Sets the text decorations.
+            /// Gets or sets the text decorations.
             /// </summary>
-            /// <value>The text decorations.</value>
-            public TextDecorationCollection? TextDecorations { private get; set; }
+            public TextDecorationCollection? TextDecorations { get; set; }
 
             /// <summary>
             /// Gets or sets the image.
             /// </summary>
-            /// <value>
-            /// The image.
-            /// </value>
             public Image? Image { get; internal set; }
+
+            /// <summary>
+            /// Gets or sets the background brush (e.g. for code blocks).
+            /// </summary>
+            public Brush? Background { get; set; }
 
             /// <summary>
             /// Gets the parent.
             /// </summary>
-            /// <value>The parent.</value>
             private Span Parent
             {
                 [UsedImplicitly]
@@ -405,6 +522,11 @@ namespace CP.BBCode.WPF.Core
                 if (Foreground != null)
                 {
                     run.Foreground = Foreground;
+                }
+
+                if (Background != null)
+                {
+                    run.Background = Background;
                 }
 
                 run.TextDecorations = TextDecorations;
